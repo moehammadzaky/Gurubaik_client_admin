@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = process.env.API_URL || 'http://localhost:3000/api'
+const API_URL = process.env.API_URL || 'http://18.141.193.87:3000/api'
 
 export default axios.create({
   
