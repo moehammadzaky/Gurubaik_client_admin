@@ -100,6 +100,11 @@
                       <label for="exampleInputPassword1">Nama Kompetensi Dasar</label>
                       <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Input name Kompetensi Dasar" v-model="inputKd">
                     </div>
+                      <label><code>Atau, Import CSV </code></label>
+                    <div class="form-group">
+                      <label for="exampleInputPassword1">Pilih File (.CSV)</label>
+                        <input type="file" id="file" ref="filecsv" accept=".csv" v-on:change="handleFileUpload()" class="form-control file-upload-info" style="padding-top:5px"/>
+                    </div>
                     <button style="width:49%" type="submit" class="btn btn-primary mr-2">Tambah Kompetensi</button>
                     <button style="width:49%" class="btn btn-danger" v-on:click="hideModal">Batalkan</button>
               </form>
@@ -152,7 +157,8 @@ export default {
       perPage: 5,
       pages: [], 
        DelId :'',
-      DelName : ''
+      DelName : '',
+       csv : ''
     }
      
   },
@@ -166,6 +172,9 @@ export default {
 
   },
   methods: {
+      handleFileUpload(){
+        this.csv = this.$refs.filecsv.files[0];
+      },
       showModal () {
         this.$modal.show('modal');
       },
@@ -191,6 +200,12 @@ export default {
         this.$modal.hide('modal-delete');
       },
       AddKd(){
+        let formData = new FormData();
+         let file = this.csv;
+        formData.append('file', file);
+        formData.append('Created_by', this.users[0].User_name);
+      
+        if (this.csv === ''){
          this.$http.post('/master/kompetensi', { 
                 Mapel_id : this.selectedMapel.Id_mapel,
                 Kd_name: this.inputKd, 
@@ -198,6 +213,15 @@ export default {
                 })
                 .then(request => this.Successful(request))
                 .catch(() => this.Failed())
+        }else{
+            this.$http.post('/master/kompetensi/csv/'+this.selectedMapel.Id_mapel, formData,{
+                    headers: {
+                    'Content-Type': 'multipart/form-data'
+                    }
+                })
+                .then(request => this.Successful(request))
+                .catch(() => this.Failed())
+        }     
       },
       Successful(request){
          this.Kompetensi = request.data.values

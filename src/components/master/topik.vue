@@ -106,8 +106,14 @@
                     </div>
 
                     <div class="form-group">
-                      <label for="exampleInputPassword1">Pilih Topik Pembelajaran</label>
+                      <label for="exampleInputPassword1">Masukkan Topik Pembelajaran</label>
                       <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Input name Topik Pembelajaran" v-model="inputTopik">
+                    </div>
+                    
+                     <label><code>Atau, Import CSV </code></label>
+                    <div class="form-group">
+                      <label for="exampleInputPassword1">Pilih File (.CSV)</label>
+                        <input type="file" id="file" ref="filecsv" accept=".csv" v-on:change="handleFileUpload()" class="form-control file-upload-info" style="padding-top:5px"/>
                     </div>
 
 
@@ -166,7 +172,8 @@ export default {
       perPage: 5,
       pages: [], 
       DelId :'',
-      DelName : ''
+      DelName : '',
+      csv :''
     }
      
   },
@@ -182,6 +189,9 @@ export default {
 
   },
   methods: {
+      handleFileUpload(){
+        this.csv = this.$refs.filecsv.files[0];
+      },
       showModal () {
         this.$modal.show('modal');
       },
@@ -207,6 +217,13 @@ export default {
         this.$modal.hide('modal-delete');
       },
       AddTopik(){
+
+        let formData = new FormData();
+        let file = this.csv;
+        formData.append('file', file);
+        formData.append('Created_by', this.users[0].User_name);
+      
+      if (this.csv === ''){
          this.$http.post('/master/topik', { 
                 Kd_id : this.selectedKd.Id_kd,
                 Topik_name: this.inputTopik, 
@@ -214,6 +231,15 @@ export default {
                 })
                 .then(request => this.Successful(request))
                 .catch(() => this.Failed())
+      }else{
+        this.$http.post('/master/topik/csv/'+this.selectedKd.Id_kd, formData,{
+                    headers: {
+                    'Content-Type': 'multipart/form-data'
+                    }
+                })
+                .then(request => this.Successful(request))
+                .catch(() => this.Failed())
+      }      
       },
       Successful(request){
          this.Topik = request.data.values
@@ -303,6 +329,7 @@ export default {
 }
 .vm--modal {
     height: auto !important;
+    top:100px !important;
 }
 .vs__dropdown-toggle {
     height: 31px;

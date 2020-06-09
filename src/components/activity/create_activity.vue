@@ -81,7 +81,7 @@
                                                         <label for="karakteristik">Karakteristik Siswa*</label>
                                                     </div>
 
-                                                    <div v-for="(item, index) in filter" v-bind:key="item.name">
+                                                    <div v-for="(item, index) in filter" v-bind:key="index">
                                                         <div class="form-group row">
                                                             <div class="col-lg-4">
                                                                     <label > {{ item.name_convert}} : </label>
@@ -89,16 +89,16 @@
                                                             <div class="col-lg-8" >
                                                                 <div class="row">
                                                                         <div class="col-lg-4">
-                                                                            <input class="form-check-input" type="radio"  v-bind:name="item.name" v-bind:value="item.type_convert[0]" style="margin-top:0" v-model="tagging[index]"> 
-                                                                            <label >{{item.type_convert[0]}}</label><br> 
+                                                                            <input class="form-check-input" type="checkbox"  :name="item.name" :value="item.type_convert[0]" style="margin-top:0" v-model="tagging[index]"> 
+                                                                            <label :for="item.type_convert[0]">{{item.type_convert[0]}}</label><br> 
                                                                         </div>   
                                                                         <div class="col-lg-4">
-                                                                            <input class="form-check-input" type="radio"  v-bind:name="item.name" v-bind:value="item.type_convert[1]"  style="margin-top:0" v-model="tagging[index]">
-                                                                            <label  >{{item.type_convert[1]}}</label><br>
+                                                                            <input class="form-check-input" type="checkbox"  :name="item.name" :value="item.type_convert[1]"  style="margin-top:0" v-model="tagging[index]">
+                                                                            <label  :for="item.type_convert[1]">{{item.type_convert[1]}}</label><br>
                                                                         </div>  
                                                                         <div class="col-lg-4">
-                                                                            <input class="form-check-input" type="radio"  v-bind:name="item.name" v-bind:value="item.type_convert[2]"  style="margin-top:0" v-model="tagging[index]" > 
-                                                                            <label>{{item.type_convert[2]}}</label><br>
+                                                                            <input class="form-check-input" type="checkbox"  :name="item.name" :value="item.type_convert[2]"  style="margin-top:0" v-model="tagging[index]" > 
+                                                                            <label :for="item.type_convert[2]">{{item.type_convert[2]}}</label><br>
                                                                         </div>  
                                                                 </div>
                                                             </div>    
@@ -368,8 +368,9 @@ export default {
             this.$http.get('/master/filter').then(response => {
 
                   this.filter = response.data.values;
-                  this.filter.map(item => {
+                  this.filter.map((item,index) => {
                       //let name = item.name.toString()
+                      this.tagging[index] = []
                      return item
                   });
                   
@@ -421,7 +422,6 @@ export default {
               }).catch(() => this.dataTopik = []);
             }
            else{
-               
                 this.selectedTopik = ''
            }
         },
@@ -440,9 +440,10 @@ export default {
 
              let tagging = []
              for ( let i = 0; i < this.filter.length ; i ++){
+                 let value = this.tagging[i].toString();
                  let a = {
                  "name" : this.filter[i].name,
-                 "value" : this.tagging[i]
+                 "value" : value
                  }
                  tagging.push(a)
              }

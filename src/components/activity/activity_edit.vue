@@ -88,17 +88,17 @@
                                                             </div>  
                                                             <div class="col-lg-8" >
                                                                 <div class="row">
-                                                                        <div class="col-lg-4">
-                                                                            <input class="form-check-input" type="radio"  v-bind:name="item.name" v-bind:value="item.type_convert[0]" style="margin-top:0" v-model="tagging[index]"> 
-                                                                            <label >{{item.type_convert[0]}}</label><br> 
+                                                                      <div class="col-lg-4">
+                                                                            <input class="form-check-input" type="checkbox"  :name="item.name" :value="item.type_convert[0]" style="margin-top:0" v-model="tagging[index]"> 
+                                                                            <label :for="item.type_convert[0]">{{item.type_convert[0]}}</label><br> 
                                                                         </div>   
                                                                         <div class="col-lg-4">
-                                                                            <input class="form-check-input" type="radio"  v-bind:name="item.name" v-bind:value="item.type_convert[1]"  style="margin-top:0" v-model="tagging[index]">
-                                                                            <label  >{{item.type_convert[1]}}</label><br>
+                                                                            <input class="form-check-input" type="checkbox"  :name="item.name" :value="item.type_convert[1]"  style="margin-top:0" v-model="tagging[index]">
+                                                                            <label  :for="item.type_convert[1]">{{item.type_convert[1]}}</label><br>
                                                                         </div>  
                                                                         <div class="col-lg-4">
-                                                                            <input class="form-check-input" type="radio"  v-bind:name="item.name" v-bind:value="item.type_convert[2]"  style="margin-top:0" v-model="tagging[index]" > 
-                                                                            <label>{{item.type_convert[2]}}</label><br>
+                                                                            <input class="form-check-input" type="checkbox"  :name="item.name" :value="item.type_convert[2]"  style="margin-top:0" v-model="tagging[index]" > 
+                                                                            <label :for="item.type_convert[2]">{{item.type_convert[2]}}</label><br>
                                                                         </div>  
                                                                 </div>
                                                             </div>    
@@ -401,18 +401,20 @@ export default {
             this.dokumentasi = data.dokumentasi
 
             let tags = data.filter 
-            let tagtmp = []           
+            let tagtmp = []          
             Object.keys(tags).map(function(key) {
-                
                 var tmp = key.includes("filter_");
                  if (tmp === true){
                     tagtmp.push(tags[key])
                     return tagtmp
                  }
                 });
-            this.tagging = tagtmp
-            
-           
+            for (let t = 0;t < tagtmp.length ; t++){
+                let str_tag = tagtmp[t]
+                let str_arr =  str_tag.split(',')
+                this.tagging.push(str_arr)
+            }
+        
             this.adb = []
             for ( let a= 0 ; a < data.adb.length ; a++){
                 //this.adb[a].count = data.adb[a].Acitivty_adb_count
@@ -504,9 +506,10 @@ export default {
 
              let tagging = []
              for ( let i = 0; i < this.filter.length ; i ++){
+                    let value = this.tagging[i].toString();
                  let a = {
                  "name" : this.filter[i].name,
-                 "value" : this.tagging[i]
+                 "value" : value
                  }
                  tagging.push(a)
              }

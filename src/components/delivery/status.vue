@@ -22,6 +22,7 @@
                                 <th>Order Name</th>
                                 <th>Order Address</th>
                                 <th>Status</th>
+                                <th>Request at </th>
                                 <th>Lesson Plan ID</th>
                                 <th>User</th>
                                 <th >Action</th>
@@ -33,6 +34,7 @@
                                 <td>{{ item.Order_name }}</td>
                                 <td>{{ item.Order_address }}</td>
                                 <td>{{ item.status}}</td>
+                                <td>{{ item.history[0].date_format}}</td>
                                 <td><router-link :to="{ name: 'Lesson', params: { Lesson_id: item.lesson_plan_id}}">{{ item.lesson_plan_id}}</router-link></td>
                                   <td><router-link :to="{ path: '/users', query: { email: item.User_email }}">{{ item.User_email }}</router-link></td>
                               
