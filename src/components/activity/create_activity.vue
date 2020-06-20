@@ -54,7 +54,7 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="jenjang">Jenjang*</label>
-                                                        <v-select style="width:100%" label="Jenjang_name" :options="dataJenjang" v-model="selectedJenjang" :value="selectedJenjang" @input="setSelectedJenjang"></v-select>
+                                                        <v-select  style="width:100%" label="Jenjang_name" :options="dataJenjang" v-model="selectedJenjang" :value="selectedJenjang" @input="setSelectedJenjang"></v-select>
                                                     </div>
 
                                                     <div class="form-group">
@@ -64,17 +64,17 @@
 
                                                     <div class="form-group">
                                                         <label for="mapel">Mata Pelajaran*</label>
-                                                        <v-select style="width:100%" label="Mapel_name" :options="dataMapel" v-model="selectedMapel" :value="selectedMapel" @input="setSelectedMapel"></v-select>
+                                                        <v-select  style="width:100%" label="Mapel_name" :options="dataMapel" v-model="selectedMapel" :value="selectedMapel" @input="setSelectedMapel"></v-select>
                                                     </div>
                                                     
                                                     <div class="form-group">
                                                         <label for="kompetensi">Kompetensi*</label>
-                                                        <v-select style="width:100%" label="Kd_name" :options="dataKompetensi" v-model="selectedKompetensi" :value="selectedKompetensi" @input="setSelectedKd"></v-select>
+                                                        <v-select  style="width:100%" label="Kd_name" :options="dataKompetensi" v-model="selectedKompetensi" :value="selectedKompetensi" @input="setSelectedKd"></v-select>
                                                     </div>
 
                                                     <div class="form-group">
                                                         <label for="topik">Topik*</label>
-                                                        <v-select style="width:100%" label="Topik_name" :options="dataTopik" v-model="selectedTopik" :value="selectedTopik"></v-select>
+                                                        <v-select  style="width:100%" label="Topik_name" :options="dataTopik" v-model="selectedTopik" :value="selectedTopik"></v-select>
                                                     </div>
 
                                                     <div class="form-group">
@@ -426,6 +426,7 @@ export default {
            }
         },
         AddGeneral(){
+            this.validate()
              let json = [{
                 "title" : this.Activity_title,
                 "deksripsi" : this.Activity_desc,
@@ -448,6 +449,8 @@ export default {
                  tagging.push(a)
              }
              json[0].filter = tagging
+
+             
             if (this.activity === ''){
                 this.$http.post('/activity/general/'+this.users[0].Id_user, json 
                 ).then(request => this.Successful(request))
@@ -609,6 +612,12 @@ export default {
             this.$modal.show('modal');
          },changeShow(item){
             this.imageShow = item
+        },validate(){
+             if(!this.Activity_title || !this.Activity_desc || !this.selectedJenjang || !this.selectedKelas || !this.selectedMapel || !this.selectedKompetensi
+             || !this.selectedTopik || !this.checkedType){
+                 alert("Periksa kembali data")
+             }
+              
         }
 
     }

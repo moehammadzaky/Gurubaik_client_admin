@@ -7,17 +7,22 @@
             <div class="col-md-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-lg-9">
+                        <div class="row" style="margin-bottom:30px">
+                            <div class="col-lg-6">
                                 <h4 class="card-title">Detail Activity</h4>
                                 <p v-if="dataDetail.Activity_status === 'draft'"> Status Kegiatan: <code style="font-size:14px" >{{ dataDetail.Activity_status }}</code> </p>
                             </div>
+                            
+                            
                             <div class="col-lg-3">
-                         <button type="button" class="btn btn-primary toolbar-item" style="width:100%"  v-on:click="ubahKegiatan">Ubah Kegiatan</button> 
-                        </div>     
+                                <button type="button" class="btn btn-warning toolbar-item" style="width:100%"  v-on:click="duplikatKegiatan">Duplikat Kegiatan</button> 
+                               </div>    
+                            <div class="col-lg-3">
+                                <button type="button" class="btn btn-primary toolbar-item" style="width:100%"  v-on:click="ubahKegiatan">Ubah Kegiatan</button> 
+                            </div>     
                         </div> 
 
-                            <div class="row">
+                            <div class="row" >
                                  <div v-if="dataDetail.dokumentasi && dataDetail.dokumentasi.length === 0" class="col-lg-6">
                                           <img  src="../../assets/gurubaik_logo_long.png" style="width:100%;height:250px;object-fit: contain;cursor:pointer" />
                                  </div>       
@@ -170,6 +175,38 @@
          <video v-else v-bind:src="imageShow.Activity_dok_file"  style="width:100%;height:400px;object-fit: contain;" controls></video>                       
         </div>
       </modal> 
+    <modal name="modal-duplikat">
+        <div class="modal-style" style="margin:20px">
+          <p class="card-description"> Duplikat Kegiatan</p>
+
+          <div class="form-group">
+                         <label for="jenjang">Jenjang*</label>
+                                                        <v-select  style="width:100%" label="Jenjang_name" :options="dataJenjang" v-model="selectedJenjang" :value="selectedJenjang" @input="setSelectedJenjang"></v-select>
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label for="kelas">Kelas*</label>
+                                                        <v-select style="width:100%" label="Kelas_name" :options="dataKelas" v-model="selectedKelas" :value="selectedKelas" @input="setSelectedKelas"></v-select>
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label for="mapel">Mata Pelajaran*</label>
+                                                        <v-select  style="width:100%" label="Mapel_name" :options="dataMapel" v-model="selectedMapel" :value="selectedMapel" @input="setSelectedMapel"></v-select>
+                                                    </div>
+                                                    
+                                                    <div class="form-group">
+                                                        <label for="kompetensi">Kompetensi*</label>
+                                                        <v-select  style="width:100%" label="Kd_name" :options="dataKompetensi" v-model="selectedKompetensi" :value="selectedKompetensi" @input="setSelectedKd"></v-select>
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label for="topik">Topik*</label>
+                                                        <v-select  style="width:100%" label="Topik_name" :options="dataTopik" v-model="selectedTopik" :value="selectedTopik"></v-select>
+                                                    </div>
+           <button style="width:49%" @click="dupData" class="btn btn-primary mr-2" >Duplikat Data</button>
+           <button style="width:49%" class="btn btn-danger" v-on:click="hideModalDuplikat">Batalkan</button> 
+          </div>
+      </modal>
 
 
      </div>
@@ -177,7 +214,8 @@
 </template>
 
 <script>
-
+import vSelect from 'vue-select'
+import 'vue-select/dist/vue-select.css'
 export default {
     name :'Detail',
     data () {
@@ -188,10 +226,26 @@ export default {
         imageShow : '',
         items : [],
         index :null,
+           dataJenjang: [],  
+            dataKelas :[],
+            dataMapel :[],
+            dataKompetensi :[],
+            dataTopik :[],
+             selectedJenjang :'',
+            selectedKelas :'',
+            selectedMapel :'',
+            selectedKompetensi :'',
+            selectedTopik :'',
+ 
         
         }
     },
     mounted() {
+
+         //get local storage
+        var  users_local = JSON.parse(localStorage.getItem("user") || "[]");
+        this.users = users_local;
+
         this.id = this.$route.params.Activity_id
         this.$http.get('/activity/detail/'+this.$route.params.Activity_id).then(response => {
             this.dataDetail = response.data.values;
@@ -204,6 +258,14 @@ export default {
             });
 
         });
+
+        //get data kelas
+        this.$http.get('/master/jenjang').then(response => {
+        this.dataJenjang = response.data.values;
+        });
+    },components:{
+      'v-select': vSelect
+    
     },methods:{
          showModalPreview () {
             this.$modal.show('modal');
@@ -211,10 +273,170 @@ export default {
         ubahKegiatan(){
             this.$router.push({ name: 'EditActivity', params: { Id_activity: this.id } })
         },
+        duplikatKegiatan(){
+             this.$modal.show('modal-duplikat');
+        },
+      
+        async dupData(){
+            let result_dup = await this.GeneralDup()
+            let id_dup = result_dup.data.values.Id_activity
+            await this.DokumentasiDup(id_dup, this.id)
+            await this.fileDup(id_dup, this.id)
+            await this.AdbDup(id_dup)
+            await this.stepDup(id_dup)
+            await this.publishDup(id_dup)
+            this.hideModalDuplikat()
+            this.$router.push({ name: 'Detail',  params: { Activity_id: id_dup }})
+        },
+        GeneralDup(){
+            return new Promise(resolve => {
+
+                let json = [{
+                    "title" : this.dataDetail.Activity_title,
+                    "deksripsi" : this.dataDetail.Activity_desk,
+                    "jenjang" : this.selectedJenjang.Jenjang_id,
+                    "kelas" : this.selectedKelas.id_kelas,
+                    "mapel" : this.selectedMapel.Id_mapel,
+                    "kd" : this.selectedKompetensi.Id_kd,
+                    "topik" :this.selectedTopik.Id_topik,
+                    "type" :this.dataDetail.Activity_type,
+                    "filter": []
+                }]
+
+                let tags = this.dataDetail.filter 
+                let tagtmp = []          
+                Object.keys(tags).map(function(key) {
+                    var tmp = key.includes("filter_");
+                    if (tmp === true){
+                        let json_filter = {
+                            "name":key,
+                            "value" : tags[key]
+                        }
+                        
+                        tagtmp.push(json_filter)
+                        return tagtmp
+                    }
+                });
+                json[0].filter = tagtmp
+
+               let result_post = this.$http.post('/activity/general/'+this.users[0].Id_user, json 
+                 ).then(request => {return request})
+                .catch(() => console.log("Failed"))
+                return resolve(result_post)
+            }); 
+        },
+        DokumentasiDup(newid, oldid){
+            return new Promise(resolve => {
+                let result_post = this.$http.post('/activity/duplicate/dokumentasi/'+oldid,{new_id:newid}).then(request =>{
+                    return request})
+                    .catch(() => console.log("Failed"))
+                return resolve(result_post)
+            }); 
+        },
+        fileDup(newid, oldid){
+              return new Promise(resolve => {
+                let result_post = this.$http.post('/activity/duplicate/file/'+oldid,{new_id:newid}).then(request =>{
+                    return request})
+                    .catch(() => console.log("Failed"))
+                return resolve(result_post)
+            });
+        },
+        AdbDup(id){
+             return new Promise(resolve => {
+               let adb = []
+               for(let i=0;i< this.dataDetail.adb.length;i++){
+                 let json = {
+                     "count" : this.dataDetail.adb[i].Acitivty_adb_count,
+                                  "name" : this.dataDetail.adb[i].Activity_adb_name
+                 }   
+                 adb.push(json)
+                }
+
+               let result_post = this.$http.post('/activity/adb/'+id+'/false', adb
+                ).then(request =>{
+                    return request})
+                    .catch(() => console.log("Failed"))
+
+                return resolve(result_post)       
+             });    
+        },
+        stepDup(id){
+              return new Promise(resolve => {
+                let step = {
+                    "number" : 1,
+                    "text" : this.dataDetail.step[0].Activity_step_text
+                 }
+                 let result_post =    this.$http.post('/activity/step/'+id, step
+                    ).then(request =>{
+                    return request})
+                    .catch(() => console.log("Failed"))
+                return resolve(result_post) 
+              });   
+        },
+        publishDup(id){
+            return new Promise(resolve => {
+                let result_post = this.$http.put('/activity/publish/'+id
+                    ).then(request => {
+                        return request
+                    })
+                    .catch(() => console.log("Failed"))
+                return resolve(result_post)
+            });    
+        },
+        hideModalDuplikat(){
+            this.$modal.hide('modal-duplikat');
+        },
         downloadFile(link){
             console.log(link)
-
-         window.open(link, "_blank"); 
+            window.open(link, "_blank"); 
+        }, setSelectedJenjang(value){
+            //get data Kelas
+            if (this.selectedKelas === ''){
+             
+                this.$http.get('/master/kelas/'+value.Jenjang_id).then(response => {
+                this.dataKelas = response.data.values;
+              }).catch(() => this.dataKelas = []);
+            }
+           else{
+                this.selectedKelas = ''
+                this.selectedMapel = ''
+                this.selectedKompetensi = ''
+                this.selectedTopik = ''
+           }
+        },
+        setSelectedKelas(value){
+                //get data Kelas
+            if (this.selectedMapel === ''){
+                this.$http.get('/master/mapel/'+value.id_kelas).then(response => {
+                this.dataMapel = response.data.values;
+              }).catch(() => this.dataMapel = []);
+            }
+           else{
+                this.selectedMapel = ''
+                this.selectedKompetensi = ''
+                this.selectedTopik = ''
+           }
+        },
+        setSelectedMapel(value){
+            if (this.selectedKompetensi === ''){
+                this.$http.get('/master/kompetensi/'+value.Id_mapel).then(response => {
+                this.dataKompetensi = response.data.values;
+              }).catch(() => this.dataKompetensi = []);
+            }
+           else{
+                this.selectedKompetensi = ''
+                this.selectedTopik = ''
+           }
+        },
+        setSelectedKd(value){
+            if (this.selectedTopik === ''){
+                this.$http.get('/master/topik/'+value.Id_kd).then(response => {
+                this.dataTopik = response.data.values;
+              }).catch(() => this.dataTopik = []);
+            }
+           else{
+                this.selectedTopik = ''
+           }
         },changeShow(item){
             this.imageShow = item
         },setIndex(index) {
